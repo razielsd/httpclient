@@ -18,3 +18,4 @@ Example
     $client->post('submit', 'logon');
     $client->setUrl('/profile/login');//set url
     $html = $client->send();//send post request
+
