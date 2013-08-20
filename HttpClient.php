@@ -139,6 +139,9 @@ class Testing_Core_HttpClient
         curl_setopt($ch, CURLOPT_HEADER, 1);
         curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
         $raw = curl_exec($ch);
+        if ($raw === false) {
+            throw new Testing_Core_HttpClient_Exception(curl_error($ch), curl_errno($ch));
+        }
         $info = curl_getinfo($ch);
         $this->requestHeader = curl_getinfo($ch, CURLINFO_HEADER_OUT);
         $this->parseResponse($raw, $info);
