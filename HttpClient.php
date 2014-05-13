@@ -139,8 +139,11 @@ class Testing_Core_HttpClient
         curl_setopt($ch, CURLOPT_HEADER, 1);
         curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
         $raw = curl_exec($ch);
-        if ($raw === false) {
-            throw new Testing_Core_HttpClient_Exception(curl_error($ch), curl_errno($ch));
+        if (curl_errno($ch) != 0) {
+            throw new Exception(
+                'Error download page ' . curl_getinfo($ch, CURLINFO_EFFECTIVE_URL) .
+                    ' with error: ' . curl_error($ch)
+            );
         }
         $info = curl_getinfo($ch);
         $this->requestHeader = curl_getinfo($ch, CURLINFO_HEADER_OUT);
@@ -148,6 +151,17 @@ class Testing_Core_HttpClient
         $this->request = $this->session;
         $this->request[CURLOPT_REFERER] = $info['url'];
         return $this->getBody();
+    }
+
+
+    /**
+     * Get response header
+     *
+     * @return string
+     */
+    public function getHeader()
+    {
+        return $this->response[self::RESPONSE_HEADER];
     }
 
 
