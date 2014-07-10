@@ -25,6 +25,15 @@ class Testing_Core_HttpClient
     protected $requestHeader = '';
     protected $response = null;
 
+    protected $protocol = 'http';
+
+    /**
+     * Last response info [status]
+     * @var array
+     */
+    protected $responseInfo = [];
+
+
 
     /**
      * Set host for requests
@@ -35,6 +44,17 @@ class Testing_Core_HttpClient
     {
         $param = parse_url($host, PHP_URL_HOST);
         $this->host = ($param)?$param:rtrim($host, '/');
+    }
+
+
+    /**
+     * Set default protocol
+     *
+     * @param string $protocol
+     */
+    public function isSecure($isSecure=true)
+    {
+        $this->protocol = $isSecure?'https':'http';
     }
 
 
@@ -116,7 +136,7 @@ class Testing_Core_HttpClient
     protected function getUrl($url)
     {
         if (!preg_match('/^http[s]?\:\/\//', $url)) {
-            $url = 'http://' . $this->host . $url;
+            $url = $this->protocol . '://' . $this->host . $url;
         }
         return $url;
     }
@@ -129,6 +149,7 @@ class Testing_Core_HttpClient
      */
     public function send()
     {
+        $this->responseInfo = [];
         $this->response = null;
         $ch = curl_init();
         curl_setopt_array($ch, $this->request);
@@ -150,6 +171,8 @@ class Testing_Core_HttpClient
         $this->parseResponse($raw, $info);
         $this->request = $this->session;
         $this->request[CURLOPT_REFERER] = $info['url'];
+        $this->responseInfo['status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $this->responseInfo['effective_url'] = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
         return $this->getBody();
     }
 
@@ -162,6 +185,18 @@ class Testing_Core_HttpClient
     public function getHeader()
     {
         return $this->response[self::RESPONSE_HEADER];
+    }
+
+
+    public function getResponseStatus()
+    {
+        return isset($this->responseInfo['status'])?$this->responseInfo['status']:null;
+    }
+
+
+    public function getResponseEffectiveUrl()
+    {
+        return isset($this->responseInfo['effective_url'])?$this->responseInfo['effective_url']:null;
     }
 
 
